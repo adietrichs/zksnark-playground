@@ -17,9 +17,9 @@ class Problem:
             encrypted_monomial ** alpha
             for encrypted_monomial in ([self.g] + encrypted_monomials)
         ]
-        encrypted_t_s = self.g ** self.t.evaluate(s)
+        g_t = self.g ** self.t.evaluate(s)
         proving_key = [encrypted_monomials, shifted_encrypted_monomials]
-        verification_key = [shifted_encrypted_monomials[0], encrypted_t_s]
+        verification_key = [shifted_encrypted_monomials[0], g_t]
         return [proving_key, verification_key]
 
 
@@ -30,8 +30,7 @@ class Prover:
 
     def prove(self, p):
         assert p.degree <= self.problem.max_order
-        h, remainder = divmod(p, self.problem.t)
-        assert remainder == Polynomial([0])
+        h = p / self.problem.t
         delta = group.random(ZR)
         return [
             p.evaluate_encrypted(self.problem.g, self.encrypted_monomials) ** delta,
@@ -47,16 +46,14 @@ class Prover:
 class Verifier:
     def __init__(self, problem, verification_key):
         self.problem = problem
-        self.encrypted_alpha, self.encrypted_t_s = verification_key
+        self.encrypted_alpha, self.g_t = verification_key
 
     def verify(self, proof):
         [encrypted_p, encrypted_h, shifted_encrypted_p] = proof
         assert pair(shifted_encrypted_p, self.problem.g) == pair(
             encrypted_p, self.encrypted_alpha
         )
-        assert pair(encrypted_p, self.problem.g) == pair(
-            self.encrypted_t_s, encrypted_h
-        )
+        assert pair(encrypted_p, self.problem.g) == pair(self.g_t, encrypted_h)
 
 
 if __name__ == "__main__":

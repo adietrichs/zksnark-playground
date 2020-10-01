@@ -19,9 +19,9 @@ class Problem:
         encrypted_shifted_monomials = [
             encrypted_monomial ** alpha for encrypted_monomial in encrypted_monomials
         ]
-        encrypted_t_of_s = self.g ** self.t.evaluate(s)
+        g_t = self.g ** self.t.evaluate(s)
         proving_key = [encrypted_monomials_short, encrypted_shifted_monomials]
-        verification_key = [encrypted_shifted_monomials[0], encrypted_t_of_s]
+        verification_key = [encrypted_shifted_monomials[0], g_t]
         return [proving_key, verification_key]
 
 
@@ -32,9 +32,7 @@ class Prover:
 
     def prove(self, l_1, r_1, o_1):
         l, r, o = Polynomial([0, l_1]), Polynomial([0, r_1]), Polynomial([0, o_1])
-        p = l * r - o
-        h, remainder = divmod(p, self.problem.t)
-        assert remainder == Polynomial([0])
+        h = (l * r - o) / self.problem.t
         return [
             poly.evaluate_encrypted(self.problem.g, self.encrypted_monomials_short)
             for poly in [l, r, o, h]
@@ -50,16 +48,14 @@ class Prover:
 class Verifier:
     def __init__(self, problem, verification_key):
         self.problem = problem
-        self.encrypted_alpha, self.encrypted_t_of_s = verification_key
+        self.encrypted_alpha, self.g_t = verification_key
 
     def verify(self, proof):
         [g_l, g_r, g_o, g_h, g_l_prime, g_r_prime, g_o_prime] = proof
         assert pair(g_l_prime, self.problem.g) == pair(g_l, self.encrypted_alpha)
         assert pair(g_r_prime, self.problem.g) == pair(g_r, self.encrypted_alpha)
         assert pair(g_o_prime, self.problem.g) == pair(g_o, self.encrypted_alpha)
-        assert pair(g_l, g_r) == pair(self.encrypted_t_of_s, g_h) * pair(
-            g_o, self.problem.g
-        )
+        assert pair(g_l, g_r) == pair(self.g_t, g_h) * pair(g_o, self.problem.g)
 
 
 if __name__ == "__main__":

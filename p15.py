@@ -17,8 +17,7 @@ class Prover:
 
     def respond(self, challenge):
         [encrypted_monomials] = challenge
-        h, remainder = divmod(self.p, self.problem.t)
-        assert remainder == Polynomial([0])
+        h = self.p / self.problem.t
         return [
             self.p.evaluate_encrypted(self.problem.g, encrypted_monomials),
             h.evaluate_encrypted(self.problem.g, encrypted_monomials),
