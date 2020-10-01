@@ -16,11 +16,14 @@ class Prover:
         self.p = p
 
     def respond(self, challenge):
-        [encrypted_monomials] = challenge
+        [encrypted_monomials, shifted_encrypted_monomials] = challenge
         h, remainder = divmod(self.p, self.problem.t)
         assert remainder == Polynomial([0])
         return [
             self.p.evaluate_encrypted(self.problem.g, encrypted_monomials),
+            self.p.evaluate_encrypted(
+                shifted_encrypted_monomials[0], shifted_encrypted_monomials[1:]
+            ),
             h.evaluate_encrypted(self.problem.g, encrypted_monomials),
         ]
 
@@ -29,17 +32,24 @@ class Verifier:
     def __init__(self, problem):
         self.problem = problem
         self.s = None
+        self.alpha = None
 
     def challenge(self):
         self.s = group.random(ZR)
+        self.alpha = group.random(ZR)
         monomials = [self.s ** i for i in range(1, self.problem.max_order + 1)]
         encrypted_monomials = [self.problem.g ** s_i for s_i in monomials]
-        return [encrypted_monomials]
+        shifted_encrypted_monomials = [
+            encrypted_monomial ** self.alpha
+            for encrypted_monomial in ([self.problem.g] + encrypted_monomials)
+        ]
+        return [encrypted_monomials, shifted_encrypted_monomials]
 
     def verify(self, response):
-        [encrypted_p, encrypted_h] = response
+        [encrypted_p, shifted_encrypted_p, encrypted_h] = response
         t_s = self.problem.t.evaluate(self.s)
         assert encrypted_p == encrypted_h ** t_s
+        assert encrypted_p ** self.alpha == shifted_encrypted_p
 
 
 if __name__ == "__main__":
@@ -52,4 +62,4 @@ if __name__ == "__main__":
     challenge = verifier.challenge()
     response = prover.respond(challenge)
     verifier.verify(response)
-    print("p15 example successful.")
+    print("p17 example successful.")
