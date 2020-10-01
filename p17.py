@@ -21,10 +21,10 @@ class Prover:
         assert remainder == Polynomial([0])
         return [
             self.p.evaluate_encrypted(self.problem.g, encrypted_monomials),
+            h.evaluate_encrypted(self.problem.g, encrypted_monomials),
             self.p.evaluate_encrypted(
                 shifted_encrypted_monomials[0], shifted_encrypted_monomials[1:]
             ),
-            h.evaluate_encrypted(self.problem.g, encrypted_monomials),
         ]
 
 
@@ -46,7 +46,7 @@ class Verifier:
         return [encrypted_monomials, shifted_encrypted_monomials]
 
     def verify(self, response):
-        [encrypted_p, shifted_encrypted_p, encrypted_h] = response
+        [encrypted_p, encrypted_h, shifted_encrypted_p] = response
         t_s = self.problem.t.evaluate(self.s)
         assert encrypted_p == encrypted_h ** t_s
         assert encrypted_p ** self.alpha == shifted_encrypted_p
