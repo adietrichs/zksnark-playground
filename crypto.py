@@ -41,14 +41,16 @@ class Polynomial:
 
     def __eq__(self, other):
         if type(other) is not Polynomial:
-            return NotImplementedError
+            raise NotImplementedError
         return self.degree == other.degree and all(
             self.coefs[i] == other.coefs[i] for i in range(self.degree + 1)
         )
 
     def __add__(self, other):
         if type(other) is not Polynomial:
-            return NotImplementedError
+            return Polynomial(
+                [coef if i > 0 else coef + other for i, coef in enumerate(self.coefs)]
+            )
         return Polynomial(
             [
                 self.coef(i) + other.coef(i)
@@ -56,9 +58,12 @@ class Polynomial:
             ]
         )
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     def __sub__(self, other):
         if type(other) is not Polynomial:
-            return NotImplementedError
+            raise NotImplementedError
         return Polynomial(
             [
                 self.coef(i) - other.coef(i)
@@ -67,10 +72,8 @@ class Polynomial:
         )
 
     def __mul__(self, other):
-        if type(other) is int:
-            return Polynomial([other * coef for coef in self.coefs])
         if type(other) is not Polynomial:
-            return NotImplementedError
+            return Polynomial([other * coef for coef in self.coefs])
         coefs = [0] * (self.degree + other.degree + 1)
         for i in range(self.degree + 1):
             for j in range(other.degree + 1):
@@ -78,13 +81,11 @@ class Polynomial:
         return Polynomial(coefs)
 
     def __rmul__(self, other):
-        if type(other) is not int:
-            return NotImplementedError
         return self.__mul__(other)
 
     def __divmod__(self, other):
         if type(other) is not Polynomial:
-            return NotImplementedError
+            raise NotImplementedError
         if self.degree < other.degree:
             return Polynomial([0]), self.copy()
         else:
@@ -97,6 +98,11 @@ class Polynomial:
                 return quotient_monomial, remaining
             quotient, remainder = divmod(remaining, other)
             return quotient_monomial + quotient, remainder
+
+    def __truediv__(self, other):
+        quotient, remainder = self.__divmod__(other)
+        assert remainder == Polynomial([0])
+        return quotient
 
     def __str__(self):
         result = ""
