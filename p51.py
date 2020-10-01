@@ -171,4 +171,4 @@ if __name__ == "__main__":
 
     proof = prover.prove({"a": 5, "b": 7, "m": 35, "v": 12, "w": 0})
     verifier.verify(proof)
-    print("p50 example successful.")
+    print("p51 example successful.")
