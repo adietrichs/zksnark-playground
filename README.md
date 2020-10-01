@@ -6,3 +6,7 @@ Implementations are for educational purposes only.
 Work in progress.
 
 The schemes are named after the page of the paper on which its specifications can be found.
+
+Python dependencies:
+
+* [Charm](https://github.com/JHUISI/charm)
